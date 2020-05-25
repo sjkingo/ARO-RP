@@ -18,6 +18,7 @@ import (
 	"github.com/Azure/ARO-RP/pkg/api"
 	"github.com/Azure/ARO-RP/pkg/env"
 	"github.com/Azure/ARO-RP/pkg/metrics"
+	aroclient "github.com/Azure/ARO-RP/pkg/util/aro-operator-client/clientset/versioned/typed/aro.openshift.io/v1alpha1"
 	"github.com/Azure/ARO-RP/pkg/util/restconfig"
 )
 
@@ -33,6 +34,7 @@ type Monitor struct {
 	configcli configclient.Interface
 	mcocli    mcoclient.Interface
 	m         metrics.Interface
+	arocli    aroclient.AroV1alpha1Interface
 }
 
 func NewMonitor(ctx context.Context, env env.Interface, log *logrus.Entry, oc *api.OpenShiftCluster, m metrics.Interface, logMessages bool) (*Monitor, error) {
@@ -76,6 +78,11 @@ func NewMonitor(ctx context.Context, env env.Interface, log *logrus.Entry, oc *a
 		return nil, err
 	}
 
+	arocli, err := aroclient.NewForConfig(restConfig)
+	if err != nil {
+		return err
+	}
+
 	return &Monitor{
 		env:         env,
 		log:         log,
@@ -88,6 +95,7 @@ func NewMonitor(ctx context.Context, env env.Interface, log *logrus.Entry, oc *a
 		configcli: configcli,
 		mcocli:    mcocli,
 		m:         m,
+		arocli:    arocli,
 	}, nil
 }
 
